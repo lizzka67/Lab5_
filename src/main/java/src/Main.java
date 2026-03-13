@@ -36,7 +36,6 @@ public class Main {
                         System.out.println("Команды: rep_create_sample, rep_addline, rep_list, rep_show, rep_lines, rep_updateline, rep_delline, rep_finalize, rep_sign, rep_export");
                         break;
 
-                    // 1) rep_create_sample <sample_id>
                     case "rep_create_sample":
                         if (parts.length < 2) throw new ValidationException("Ошибка: укажите sample_id");
                         long sampleId = Long.parseLong(parts[1]);
@@ -48,7 +47,6 @@ public class Main {
                         System.out.println("OK report_id=" + report.getId());
                         break;
 
-                    // 2) rep_addline <report_id>
                     case "rep_addline":
                         if (parts.length < 2) throw new ValidationException("Ошибка: укажите report_id");
                         long reportIdAdd = Long.parseLong(parts[1]);
@@ -67,7 +65,6 @@ public class Main {
                         System.out.println("OK line_id=" + line.getId());
                         break;
 
-                    // 3) rep_list [--status DRAFT|FINAL|SIGNED]
                     case "rep_list":
                         Map<String, String> listArgs = parseArgs(parts, 1);
                         String statusFilter = listArgs.get("status");
@@ -81,7 +78,6 @@ public class Main {
                         }
                         break;
 
-                    // 4) rep_show <report_id>
                     case "rep_show":
                         if (parts.length < 2) throw new ValidationException("Ошибка: укажите report_id");
                         long reportIdShow = Long.parseLong(parts[1]);
@@ -103,11 +99,11 @@ public class Main {
 
                         System.out.println("ID  Param          Value  Unit");
                         for (ReportLine l : lines) {
-                            System.out.printf("%-3d %-14s %-6.2f %s\n", l.getId(), l.getParam(), l.getValue(), l.getUnit());
+                           System.out.println(r.getId() +" "+ r.getName() +" "+ r.getStatus());
                         }
                         break;
 
-                    // 6) rep_updateline <line_id> field=value ...
+
                     case "rep_updateline":
                         if (parts.length < 3) throw new ValidationException("Ошибка: укажите line_id и поля (например, value=7.10)");
                         long lineIdUpdate = Long.parseLong(parts[1]);
@@ -121,7 +117,6 @@ public class Main {
                         System.out.println("OK");
                         break;
 
-                    // 7) rep_delline <line_id>
                     case "rep_delline":
                         if (parts.length < 2) throw new ValidationException("Ошибка: укажите line_id");
                         long lineIdDel = Long.parseLong(parts[1]);
@@ -129,7 +124,6 @@ public class Main {
                         System.out.println("OK deleted");
                         break;
 
-                    // 8) rep_finalize <report_id>
                     case "rep_finalize":
                         if (parts.length < 2) throw new ValidationException("Ошибка: укажите report_id");
                         long reportIdFinal = Long.parseLong(parts[1]);
@@ -137,7 +131,6 @@ public class Main {
                         System.out.println("OK report " + reportIdFinal + " FINAL");
                         break;
 
-                    // 9) rep_sign <report_id>
                     case "rep_sign":
                         if (parts.length < 2) throw new ValidationException("Ошибка: укажите report_id");
                         long reportIdSign = Long.parseLong(parts[1]);
@@ -146,11 +139,10 @@ public class Main {
                         System.out.println("OK report " + reportIdSign + " SIGNED by " + username);
                         break;
 
-                    // 10) rep_export <report_id>
                     case "rep_export":
                         if (parts.length < 2) throw new ValidationException("Ошибка: укажите report_id");
                         long reportIdExport = Long.parseLong(parts[1]);
-                        service.getReportById(reportIdExport); // Проверка существования
+                        service.getReportById(reportIdExport); // ароверка существования
                         System.out.println("Report exported (text)");
                         break;
 
@@ -160,7 +152,6 @@ public class Main {
             } catch (NumberFormatException e) {
                 System.out.println("Ошибка: ID и значения должны быть числами!");
             } catch (IllegalArgumentException e) {
-                // Перехват ошибки из Enum.valueOf() если ввели плохой MeasurementParam
                 System.out.println("Ошибка: неверное значение параметра. Используйте PH, CONDUCTIVITY, TURBIDITY или NITRATE.");
             } catch (ValidationException e) {
                 System.out.println(e.getMessage());
@@ -170,7 +161,6 @@ public class Main {
         }
     }
 
-    // Вспомогательный метод для парсинга аргументов вида field=value и флагов --status DRAFT
     private static Map<String, String> parseArgs(String[] parts, int startIndex) {
         Map<String, String> args = new HashMap<>();
         for (int i = startIndex; i < parts.length; i++) {
