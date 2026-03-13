@@ -13,15 +13,12 @@ import java.util.Set;
 
 public class ReportService {
 
-    // ВАРИАНТ 5: Используем Set для хранения
     private final Set<Report> reports = new HashSet<>();
     private final Set<ReportLine> reportLines = new HashSet<>();
 
     private long reportIdCounter = 1;
     private long lineIdCounter = 1;
-    private final String currentUser = "SYSTEM"; // Как сказано в методичке на ранних этапах
-
-    // 1) Создание отчета по образцу
+    private final String currentUser = "SYSTEM"; 
     public Report createSampleReport(long sampleId, String name) {
         Report report = new Report();
         report.setId(reportIdCounter++);
@@ -37,12 +34,10 @@ public class ReportService {
         return report;
     }
 
-    // Получить все отчеты (для списка)
     public Set<Report> getAllReports() {
         return reports;
     }
 
-    // Найти отчет по ID
     public Report getReportById(long reportId) {
         for (Report r : reports) {
             if (r.getId() == reportId) {
@@ -52,11 +47,9 @@ public class ReportService {
         throw new validation.ValidationException("Ошибка: отчет с id=" + reportId + " не найден");
     }
 
-    // 2) Добавление строки в отчет
     public ReportLine addReportLine(long reportId, MeasurementParam param, double value, String unit) {
         Report report = getReportById(reportId);
 
-        // По заданию: нельзя редактировать строки, если отчет не DRAFT
         if (report.getStatus() != ReportStatus.DRAFT) {
             throw new ValidationException("Ошибка: можно добавлять строки только в отчет со статусом DRAFT.");
         }
@@ -73,14 +66,11 @@ public class ReportService {
         Validator.validateReportLine(line);
         reportLines.add(line);
 
-        // Обновляем время изменения самого отчета
         report.setUpdatedAt(Instant.now());
         return line;
     }
 
-    // Получить все строки конкретного отчета
     public Set<ReportLine> getLinesByReportId(long reportId) {
-        // Проверяем, существует ли вообще такой отчет
         getReportById(reportId);
 
         Set<ReportLine> result = new HashSet<>();
@@ -92,7 +82,6 @@ public class ReportService {
         return result;
     }
 
-    // Найти строку по ID
     public ReportLine getLineById(long lineId) {
         for (ReportLine line : reportLines) {
             if (line.getId() == lineId) {
@@ -102,7 +91,6 @@ public class ReportService {
         throw new ValidationException("Ошибка: строка с id=" + lineId + " не найдена");
     }
 
-    // 6) Обновление строки
     public void updateReportLine(long lineId, MeasurementParam newParam, Double newValue, String newUnit) {
         ReportLine line = getLineById(lineId);
         Report report = getReportById(line.getReportId());
@@ -120,7 +108,6 @@ public class ReportService {
         report.setUpdatedAt(Instant.now());
     }
 
-    // 7) Удаление строки
     public void deleteReportLine(long lineId) {
         ReportLine line = getLineById(lineId);
         Report report = getReportById(line.getReportId());
@@ -133,7 +120,6 @@ public class ReportService {
         report.setUpdatedAt(Instant.now());
     }
 
-    // 8) Завершение отчета (перевод в FINAL)
     public void finalizeReport(long reportId) {
         Report report = getReportById(reportId);
         if (report.getStatus() != ReportStatus.DRAFT) {
@@ -143,7 +129,6 @@ public class ReportService {
         report.setUpdatedAt(Instant.now());
     }
 
-    // 9) Подписание отчета (перевод в SIGNED)
     public void signReport(long reportId, String username) {
         Report report = getReportById(reportId);
         if (report.getStatus() == ReportStatus.DRAFT) {
