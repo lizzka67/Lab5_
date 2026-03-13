@@ -89,7 +89,6 @@ public class Report {
         this.updatedAt = updatedAt;
     }
 
-    // Обязательно для 5 варианта (Set)
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
