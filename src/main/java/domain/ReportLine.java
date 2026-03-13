@@ -35,7 +35,6 @@ public class ReportLine {
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
 
-    // Обязательно для 5 варианта (Set)
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

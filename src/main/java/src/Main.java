@@ -23,7 +23,7 @@ public class Main {
             String input = scanner.nextLine().trim();
             if (input.isEmpty()) continue;
 
-            String[] parts = input.split("\\s+");
+            String[] parts = input.split(" ");
             String command = parts[0];
 
             try {
@@ -37,13 +37,13 @@ public class Main {
                         break;
 
                     case "rep_create_sample":
-                        if (parts.length < 2) throw new ValidationException("Ошибка: укажите sample_id");
+                        if (parts.length < 3) throw new ValidationException("Ошибка: укажите sample_id и username");
                         long sampleId = Long.parseLong(parts[1]);
-
+                        String username = parts[2];
                         System.out.print("Название отчёта: ");
                         String name = scanner.nextLine().trim();
 
-                        Report report = service.createSampleReport(sampleId, name);
+                        Report report = service.createSampleReport(sampleId, name, username);
                         System.out.println("OK report_id=" + report.getId());
                         break;
 
@@ -66,15 +66,9 @@ public class Main {
                         break;
 
                     case "rep_list":
-                        Map<String, String> listArgs = parseArgs(parts, 1);
-                        String statusFilter = listArgs.get("status");
-
-                        System.out.println("ID  Name              Status");
+                        System.out.println("ID Name Status");
                         for (Report r : service.getAllReports()) {
-                            if (statusFilter != null && !r.getStatus().name().equalsIgnoreCase(statusFilter)) {
-                                continue;
-                            }
-                            System.out.printf("%-3d %-17s %s\n", r.getId(), r.getName(), r.getStatus());
+                            System.out.println(r.getId() +" "+ r.getName() +" "+ r.getStatus());
                         }
                         break;
 
@@ -91,7 +85,6 @@ public class Main {
                         if (rShow.getSignedBy() != null) System.out.println("signed by: " + rShow.getSignedBy());
                         break;
 
-                    // 5) rep_lines <report_id>
                     case "rep_lines":
                         if (parts.length < 2) throw new ValidationException("Ошибка: укажите report_id");
                         long reportIdLines = Long.parseLong(parts[1]);
@@ -99,19 +92,26 @@ public class Main {
 
                         System.out.println("ID  Param          Value  Unit");
                         for (ReportLine l : lines) {
-                           System.out.println(r.getId() +" "+ r.getName() +" "+ r.getStatus());
+                            System.out.printf("%-3d %-14s %-6.2f %s\n", l.getId(), l.getParam(), l.getValue(), l.getUnit());
                         }
                         break;
 
-
                     case "rep_updateline":
-                        if (parts.length < 3) throw new ValidationException("Ошибка: укажите line_id и поля (например, value=7.10)");
+                        if (parts.length < 3) throw new ValidationException("Ошибка: укажите line_id и 1 поле (например, value=7.10)");
                         long lineIdUpdate = Long.parseLong(parts[1]);
-                        Map<String, String> updateArgs = parseArgs(parts, 2);
+                        String[] part = parts[2].split("=");
+                        String field = part[0];
+                        MeasurementParam newParam = null;
+                        Double newValue = null;
+                        String newUnit = null;
 
-                        MeasurementParam newParam = updateArgs.containsKey("param") ? MeasurementParam.valueOf(updateArgs.get("param").toUpperCase()) : null;
-                        Double newValue = updateArgs.containsKey("value") ? Double.parseDouble(updateArgs.get("value")) : null;
-                        String newUnit = updateArgs.get("unit");
+                        if (field.equals("param")) {
+                            newParam = MeasurementParam.valueOf(parts[1].toUpperCase());
+                        } else if (field.equals("value")) {
+                            newValue = Double.parseDouble(parts[1]);
+                        } else if (field.equals("unit")) {
+                            newUnit = parts[1];
+                        }
 
                         service.updateReportLine(lineIdUpdate, newParam, newValue, newUnit);
                         System.out.println("OK");
@@ -123,7 +123,6 @@ public class Main {
                         service.deleteReportLine(lineIdDel);
                         System.out.println("OK deleted");
                         break;
-
                     case "rep_finalize":
                         if (parts.length < 2) throw new ValidationException("Ошибка: укажите report_id");
                         long reportIdFinal = Long.parseLong(parts[1]);
@@ -132,18 +131,39 @@ public class Main {
                         break;
 
                     case "rep_sign":
-                        if (parts.length < 2) throw new ValidationException("Ошибка: укажите report_id");
+                        if (parts.length < 3) throw new ValidationException("Ошибка: укажите report_id и username");
                         long reportIdSign = Long.parseLong(parts[1]);
-                        String username = "yarus"; // имитируем текущего пользователя
-                        service.signReport(reportIdSign, username);
-                        System.out.println("OK report " + reportIdSign + " SIGNED by " + username);
+                        String signer = parts[2];
+                        service.signReport(reportIdSign, signer);
+                        System.out.println("OK report " + reportIdSign + " SIGNED by " + signer);
                         break;
 
                     case "rep_export":
                         if (parts.length < 2) throw new ValidationException("Ошибка: укажите report_id");
                         long reportIdExport = Long.parseLong(parts[1]);
-                        service.getReportById(reportIdExport); // ароверка существования
-                        System.out.println("Report exported (text)");
+
+                        Report reportExport = service.getReportById(reportIdExport);
+
+                        System.out.println("ID: " + reportExport.getId());
+                        System.out.println("Название: " + reportExport.getName());
+                        System.out.println("ID пробы (sampleId): " + reportExport.getSampleId());
+                        System.out.println("ID эксперимента (experimentId): " + reportExport.getExperimentId());
+                        System.out.println("Статус: " + reportExport.getStatus());
+                        System.out.println("Владелец: " + reportExport.getOwnerUsername());
+                        System.out.println("Подписант: " + (reportExport.getSignedBy() != null ? reportExport.getSignedBy() : "не подписан"));
+                        System.out.println("Создан: " + reportExport.getCreatedAt());
+                        System.out.println("Обновлен: " + reportExport.getUpdatedAt());
+
+                        Set<ReportLine> linesExport = service.getLinesByReportId(reportIdExport);
+                        System.out.println("Строки отчета");
+                        if (linesExport.isEmpty()) {
+                            System.out.println("Строк отчета нет");
+                        } else {
+                            System.out.println("ID Параметр Значение Единицы");
+                            for (ReportLine lineExport : linesExport) {
+                                System.out.println(lineExport.getId() +" "+ lineExport.getParam() +" "+ lineExport.getValue() +" "+ lineExport.getUnit());
+                            }
+                        }
                         break;
 
                     default:
@@ -161,20 +181,4 @@ public class Main {
         }
     }
 
-    private static Map<String, String> parseArgs(String[] parts, int startIndex) {
-        Map<String, String> args = new HashMap<>();
-        for (int i = startIndex; i < parts.length; i++) {
-            String part = parts[i];
-            if (part.contains("=")) {
-                String[] split = part.split("=", 2);
-                if (split.length == 2) {
-                    args.put(split[0], split[1].replace("\"", ""));
-                }
-            } else if (part.startsWith("--") && i + 1 < parts.length) {
-                args.put(part.substring(2), parts[i + 1]);
-                i++;
-            }
-        }
-        return args;
-    }
 }
