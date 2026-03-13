@@ -6,7 +6,7 @@ import domain.ReportLine;
 public class Validator {
 
     public static void validateReport(Report report) {
-        if (report.getName() == null || report.getName().trim().isEmpty()) {
+        if (report.getName() == null || report.getName().trim().isEmpty()) { //trim убирает лишние пробелы 
             throw new validation.ValidationException("Ошибка: Название отчета не может быть пустым.");
         }
         if (report.getName().length() > 128) {
