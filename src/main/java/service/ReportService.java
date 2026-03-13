@@ -44,17 +44,17 @@ public class ReportService {
                 return r;
             }
         }
-        throw new validation.ValidationException("Ошибка: отчет с id=" + reportId + " не найден");
+        throw new ValidationException("Ошибка: отчет с id=" + reportId + " не найден");   //выбрасивает исключение
     }
 
     public ReportLine addReportLine(long reportId, MeasurementParam param, double value, String unit) {
-        Report report = getReportById(reportId);
+        Report report = getReportById(reportId);  //класс и название. Ищет по ИД
 
         if (report.getStatus() != ReportStatus.DRAFT) {
-            throw new ValidationException("Ошибка: можно добавлять строки только в отчет со статусом DRAFT.");
+            throw new ValidationException("Ошибка: можно добавлять строки только в отчет со статусом DRAFT.");  //выбрасивает исключение
         }
 
-        ReportLine line = new ReportLine();
+        ReportLine line = new ReportLine(); //создание нового класса
         line.setId(lineIdCounter++);
         line.setReportId(reportId);
         line.setParam(param);
@@ -113,7 +113,7 @@ public class ReportService {
         Report report = getReportById(line.getReportId());
 
         if (report.getStatus() != ReportStatus.DRAFT) {
-            throw new validation.ValidationException("Ошибка: можно удалять строки только в отчете со статусом DRAFT.");
+            throw new ValidationException("Ошибка: можно удалять строки только в отчете со статусом DRAFT.");
         }
 
         reportLines.remove(line);
@@ -123,14 +123,14 @@ public class ReportService {
     public void finalizeReport(long reportId) {
         Report report = getReportById(reportId);
         if (report.getStatus() != ReportStatus.DRAFT) {
-            throw new validation.ValidationException("Ошибка: можно финализировать только DRAFT отчет.");
+            throw new ValidationException("Ошибка: можно финализировать только DRAFT отчет.");
         }
         report.setStatus(ReportStatus.FINAL);
         report.setUpdatedAt(Instant.now());
     }
 
     public void signReport(long reportId, String username) {
-        Report report = getReportById(reportId);
+        Report report = getReportById(reportId); 
         if (report.getStatus() == ReportStatus.DRAFT) {
             throw new ValidationException("Ошибка: сначала сделайте finalize (отчет должен быть FINAL).");
         }
