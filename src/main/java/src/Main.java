@@ -90,9 +90,9 @@ public class Main {
                         long reportIdLines = Long.parseLong(parts[1]);
                         Set<ReportLine> lines = service.getLinesByReportId(reportIdLines);
 
-                        System.out.println("ID  Param          Value  Unit");
+                        System.out.println("ID Param Value Unit");
                         for (ReportLine l : lines) {
-                            System.out.printf("%-3d %-14s %-6.2f %s\n", l.getId(), l.getParam(), l.getValue(), l.getUnit());
+                            System.out.println(l.getId() +" "+ l.getParam() +" "+ l.getValue() +" "+ l.getUnit());
                         }
                         break;
 
